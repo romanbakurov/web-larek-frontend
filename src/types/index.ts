@@ -1,44 +1,77 @@
+//Интерфейс карточки товара
 export interface IProductItem {
-	id: string;
-	description: string;
-	images: string;
-	title: string;
-	category: string;
-	price: number | null;
+		id: string;
+		description: string;
+		image: string;
+		title: string;
+		category: string;
+		price: number | null;
+        button: string;
 }
 
-export interface IOrder {
-    id: string;
-    total: number;
-}
-
+//Интерфейс формы закза
 export interface IOrderForm {
-    payment: string;
-    address: string;
-    email: string;
-    phone: string;
+	payment: string;
+	address: string;
+	email: string;
+	phone: string;
+	total: string | number;
+    items: string[];
 }
 
-export interface IProductData {
-    catalog: IProductItem[];
-    preview: string | null;
-    addProduct(product: IProductItem): void;
-    getProduct(productId: string): IProductItem | null;
+
+//Интерфейс успешного заказа
+export interface IOrderResult {
+	id: string;
+	total: string | number;
 }
 
-export interface IOrderData {
-    products: TOrderPlaced[];
-    addOrder(order: TOrderPlaced): void;
-    deleteOrder(orderId: string, payload: Function | null): void;
-    clearOrders(): void;
-    getOrder(orderId: string): TOrderPlaced | null;
+//Интерфейс каталога
+export interface ICardData {
+	catalog: IProductItem[];
+	preview: string | null;
+	basket: IProductItem[];
+	order: IOrderForm | null;
+    setCatalog(catalog: IProductItem[]): void;
+    getCatalog(productId: string): IProductItem | null;
+    setPreview(product: IProductItem): void;
+    setProductToBasket(product: IProductItem): void;
+    setTotal(value: number): void;
+    getTotal(): number;
+    getBasket(): IProductItem[];
+    getStatusBasket(): boolean;
+    addProductToBasket(product: IProductItem): void;
+    deleteProductFromBasket(productId: string, payload: Function | null): void;
+    updateBasket(product: IProductItem, payload: Function | null): void;
+    setOrder(item: keyof IOrderForm, value: string): void;
+    validationOrder(): boolean;
 }
 
-export type TOrder = IOrder & IProductItem
+//Интерфейс модального окна
+export interface IModal {
+	isModal: boolean;
+	openModal(): void;
+	closeModal(): void;
+	render(data?: Partial<ICardData>): HTMLElement;
+}
 
-export type TProductInfo = Pick<TOrder, 'id' | 'images'| 'title' | 'category' | 'price'>
-export type TBasketItem = Pick<TOrder, 'id' | 'title' | 'price' | 'total' >
-export type TUserForm = Pick<IOrderForm, 'email' | 'phone' | 'address' | 'payment'>
-export type TOrderPlaced = Pick<IOrder, 'id' | 'total'>
+//Молка карточки товара
+export type TCardItem = Pick<IProductItem, 'id' | 'description' | 'button'>;
 
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+//Товар в корзине
+export type TCardBasket = Pick<IProductItem, 'id' | 'title' | 'price'>;
+
+//Выбор способа оплаты
+export type TPayment = 'онлайн' | 'при получении';
+
+//Форма заказа с выборос способа оплаты и адрессом
+export type TOrderForm = Pick<IOrderForm, 'payment' | 'address'>;
+
+//Форма заказа с почтой и телефоном
+export type TContactsForm = Pick<IOrderForm, 'email' | 'phone'>;
+
+//Форма заказа
+export type TOrder = TOrderForm & TContactsForm;
+
+//Ошибки валидации формы
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
