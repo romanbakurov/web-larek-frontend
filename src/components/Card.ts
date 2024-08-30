@@ -1,13 +1,12 @@
-import { IProductItem, TCardBasket, TCardItem } from '../types';
+import { ICardBasket, IProductItem } from '../types';
+import { ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
-import { IEvents } from './base/events';
 
-interface ICardActions {
+export interface ICardActions {
 	onClick: (event: MouseEvent) => void;
 }
 
 export class Card extends Component<IProductItem> {
-	protected events: IEvents;
 	protected cardImage: HTMLImageElement;
 	protected cardTitle: HTMLElement;
 	protected cardCategory: HTMLElement;
@@ -21,147 +20,114 @@ export class Card extends Component<IProductItem> {
 		'хард-скил': 'hard',
 	};
 
-	constructor(
-		protected container: HTMLElement,
-		events: IEvents,
-		actions?: ICardActions
-	) {
+	constructor(protected container: HTMLElement, actions?: ICardActions) {
 		super(container);
-		this.events = events;
 
 		this.cardImage = this.container.querySelector('.card__image');
 		this.cardTitle = this.container.querySelector('.card__title');
 		this.cardCategory = this.container.querySelector('.card__category');
 		this.cardPrice = this.container.querySelector('.card__price');
-        this.cardId = this.container.getAttribute('data-id');
+		this.cardId = this.container.getAttribute('data-id');
 
-        if (actions?.onClick) {
+		if (actions?.onClick) {
 			container.addEventListener('click', actions.onClick);
 		}
 	}
 
-    set id(value: string) {
-        this.container.dataset.id = value;
-    }
+	set title(title: string) {
+		this.setText(this.cardTitle, title);
+	}
 
-    get id(): string {
-        return this.container.dataset.id || '';
-    }
+	set category(category: string) {
+		this.setText(this.cardCategory, category);
+		this.cardCategory.className = `card__category card__category_${this.cardCategoryColor[category]}`;
+	}
 
-    set title(value: string) {
-        this.setText(this.cardTitle, value);
-    }
-
-    get title(): string {
-        return this.cardTitle.textContent || '';
-    }
-
-    set image(value: string) { 
-        this.setImage(this.cardImage, value, this.title);
+	set image(image: string) {
+		this.setImage(this.cardImage, image, this.title);
+	}
+	set price(value: number | null) {
+		if (value !== null) {
+			this.cardPrice.textContent = `${value} синапсов`;
+		} else {
+			this.cardPrice.textContent = 'Бесценно';
+		}
+	}
 }
 
-    set category(value: string) {
-        this.setText(this.cardCategory, value);
-    }
+export class CardPreview extends Card {
+	protected cardDescription: HTMLElement;
+	protected cardButton?: HTMLButtonElement;
 
-    set categoryColor(value: string) {
-        this.cardCategory.classList.add(this.cardCategoryColor[value]);
-    }
+	constructor(container: HTMLElement, actions?: ICardActions) {
+		super(container);
 
-    set price(value: number | null) {
-        if (value !== null) {
-            this.cardPrice.textContent = `${value} синапсов`;
-        } else {
-            this.cardPrice.textContent = 'Бесценно';
-        }
-    }
-}
-
-export class CardPreview extends Component<TCardItem> {
-    protected cardDescription: HTMLElement;
-    protected cardButton?: HTMLButtonElement;
-    protected events: IEvents;
-    constructor(
-        container: HTMLElement,
-        events: IEvents,
-        actions?: ICardActions
-    ) {
-        super(container);
-        this.events = events;
-
-        this.cardDescription = this.container.querySelector('.card__description');
-        this.cardButton = this.container.querySelector('.card__button');
+		this.cardDescription = this.container.querySelector('.card__description');
+		this.cardButton = this.container.querySelector('.card__button');
 
 		if (actions?.onClick) {
-            if (this.cardButton) {
-                this.cardButton.addEventListener('click', actions?.onClick);
-            } else {
-                container.addEventListener('click', actions?.onClick);
-            }
+			if (this.cardButton) {
+				container.removeEventListener('click', actions.onClick);
+				this.cardButton.addEventListener('click', actions.onClick);
+			}
 		}
 	}
 
-    set description(value: string) {
-        if (value) {
-            this.setText(this.cardDescription, value);
-        } else {
-            this.cardDescription.textContent = '';
-        }
-    }
-    set button(value: string) {
-        if (value === 'toBasket') {
-            this.cardButton.textContent = 'Добавить в корзину';
-        } else {
-            this.container.textContent = 'Удалить из корзины';
-        }
-        if (this.cardButton) {
-            if (value === null) {
-                this.cardButton.disabled = true;
-            } else {
-                this.cardButton.disabled = false;
-            }
-        }
-    }
+	set description(value: string) {
+		if (value) {
+			this.setText(this.cardDescription, value);
+		} else {
+			this.cardDescription.textContent = '';
+		}
+	}
 
-    set disabled(value: boolean) {
-        if (this.cardButton) {
-            this.cardButton.disabled = value;
-        }
-    }
+	set disabled(value: boolean) {
+		if (this.cardButton) {
+			this.cardButton.disabled = value;
+		}
+	}
+}
 
-    }
+export class CardBasket extends Component<ICardBasket> {
+	protected cardIndex: HTMLElement;
+	protected cardTitle: HTMLElement;
+	protected cardPrice: HTMLElement;
+	protected cardButton: HTMLButtonElement;
 
-    export class CardBasket extends Component<TCardBasket> {
-        protected events: IEvents;
-        protected cardTitle: HTMLElement;
-        protected cardPrice: HTMLElement;
+	constructor(container: HTMLElement, actions?: ICardActions) {
+		super(container);
 
-        constructor(
-            container: HTMLElement,
-            events: IEvents,
-            actions?: ICardActions
-        ) {
-            super(container);
-            this.events = events;
+		this.cardTitle = ensureElement<HTMLElement>(`.card__title`, container);
+		this.cardPrice = ensureElement<HTMLElement>(`.card__price`, container);
+		this.cardIndex = ensureElement<HTMLElement>(
+			`.basket__item-index`,
+			container
+		);
+		this.cardButton = ensureElement<HTMLButtonElement>(
+			'.card__button',
+			container
+		);
 
-            this.cardTitle = this.container.querySelector('.card__title');
-            this.cardPrice = this.container.querySelector('.card__price');
+		if (actions?.onClick) {
+			if (this.cardButton) {
+				container.removeEventListener('click', actions.onClick);
+				this.cardButton.addEventListener('click', actions.onClick);
+			}
+		}
+	}
 
-            if (actions?.onClick) {
-                container.addEventListener('click', actions?.onClick);
-            }
-        }
+	set index(value: number) {
+		this.setText(this.cardIndex, value);
+	}
 
-        set title(value: string) {
-            this.setText(this.cardTitle, value);
-        }
+	set title(value: string) {
+		this.setText(this.cardIndex, value);
+	}
 
-        set price(value: number | null) {
-            if (value !== null) {
-                this.cardPrice.textContent = `${value} синапсов`;
-            } else {
-                this.cardPrice.textContent = 'Бесценно';
-            }
-        }
-
-    }
+	set price(value: number) {
+		if (value === null) {
+			this.setText(this.cardPrice, `Бесценно`);
+		}
+		this.setText(this.cardPrice, `${value} синапсов`);
+	}
+}

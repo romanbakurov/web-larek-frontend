@@ -1,24 +1,26 @@
 //Интерфейс карточки товара
 export interface IProductItem {
-		id: string;
-		description: string;
-		image: string;
-		title: string;
-		category: string;
-		price: number | null;
-        button: string;
+	id: string;
+	description: string;
+	image: string;
+	title: string;
+	category: string;
+	price: number | null;
 }
 
 //Интерфейс формы закза
 export interface IOrderForm {
 	payment: string;
 	address: string;
-	email: string;
 	phone: string;
+	email: string;
 	total: string | number;
-    items: string[];
 }
 
+//Интерфейс заказа
+export interface IOrder extends IOrderForm {
+	items: string[];
+}
 
 //Интерфейс успешного заказа
 export interface IOrderResult {
@@ -26,52 +28,78 @@ export interface IOrderResult {
 	total: string | number;
 }
 
-//Интерфейс каталога
+//Интерфейс валидации
+export interface IFormState {
+	valid: boolean;
+	errors: string[];
+}
+
+//Интерфейс изменения каталога
+export type CatalogChangeEvent = {
+	catalog: IProductItem[];
+};
+
+//Интерфейс карточки
 export interface ICardData {
 	catalog: IProductItem[];
-	preview: string | null;
+	preview: string;
 	basket: IProductItem[];
-	order: IOrderForm | null;
-    setCatalog(catalog: IProductItem[]): void;
-    getCatalog(productId: string): IProductItem | null;
-    setPreview(product: IProductItem): void;
-    setProductToBasket(product: IProductItem): void;
-    setTotal(value: number): void;
-    getTotal(): number;
-    getBasket(): IProductItem[];
-    getStatusBasket(): boolean;
-    addProductToBasket(product: IProductItem): void;
-    deleteProductFromBasket(productId: string, payload: Function | null): void;
-    updateBasket(product: IProductItem, payload: Function | null): void;
-    setOrder(item: keyof IOrderForm, value: string): void;
-    validationOrder(): boolean;
+	order: IOrder;
+	total: string | number;
+	loading: boolean;
+	setCatalog: (items: IProductItem[]) => void;
+	setPreview: (item: IProductItem) => void;
+	setProductToBasket: (item: IProductItem) => void;
+	setTotal: (value: number) => void;
+	getTotal: () => number;
+	getBasket: () => string[];
+	getStatusBasket: () => boolean;
+	addProductToOrder: (item: IProductItem) => void;
+	removeProductFromOrder: (item: IProductItem) => void;
+	removeProductFromBasket: (item: IProductItem) => void;
+	clearBasket: () => void;
+	setOrderAddress: (item: keyof IOrderForm, value: string) => void;
+	setOrderContacts: (item: keyof IOrderForm, value: string) => void;
+	validationOrderAddress: () => void;
+	validationOrderContacts: () => void;
+	orderCompleted: () => void;
 }
 
-//Интерфейс модального окна
-export interface IModal {
-	isModal: boolean;
-	openModal(): void;
-	closeModal(): void;
-	render(data?: Partial<ICardData>): HTMLElement;
+//Интерфейс карточки в корзине
+export interface ICardBasket {
+	index: number;
+	title: string;
+	price: number;
 }
 
-//Молка карточки товара
-export type TCardItem = Pick<IProductItem, 'id' | 'description' | 'button'>;
+//Интерфейс каталога
+export interface IProductsList {
+	products: IProductItem[];
+}
 
-//Товар в корзине
-export type TCardBasket = Pick<IProductItem, 'id' | 'title' | 'price'>;
+//Интерфейс корзины
+export interface IBasketView {
+	items: HTMLElement[];
+	total: number;
+}
 
-//Выбор способа оплаты
-export type TPayment = 'онлайн' | 'при получении';
+//Интерфейс главной страницы
+export interface IPage {
+	counter: number;
+	catalog: HTMLElement[];
+	locked: boolean;
+}
 
-//Форма заказа с выборос способа оплаты и адрессом
-export type TOrderForm = Pick<IOrderForm, 'payment' | 'address'>;
+//Интерфейс для успешного заказа
+export interface ISuccess {
+	total: string | number;
+}
 
-//Форма заказа с почтой и телефоном
-export type TContactsForm = Pick<IOrderForm, 'email' | 'phone'>;
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
-//Форма заказа
-export type TOrder = TOrderForm & TContactsForm;
-
-//Ошибки валидации формы
-export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
+//Интерфейс для API
+export interface IAppAPI {
+	getProductList: () => Promise<IProductItem[]>; // Метод для получения списка продуктов
+	getProductItem: (id: string) => Promise<IProductItem>; // Метод для получения конкретного продукта по id
+	orderProducts: (order: IOrderForm) => Promise<IOrderResult>; // Метод для размещения заказа продуктов
+}
